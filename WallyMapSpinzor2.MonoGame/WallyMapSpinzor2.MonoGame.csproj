@@ -7,15 +7,12 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="obj\**" />
-    <Content Remove="obj\**" />
-    <EmbeddedResource Remove="obj\**" />
-    <None Remove="obj\**" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="LilyPath" Version="0.0.4" />
     <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.1.303" />
     <PackageReference Include="MonoGame.Primitives2D" Version="1.1.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\WallyMapSpinzor2\WallyMapSpinzor2.csproj" />
   </ItemGroup>
 
 </Project>
