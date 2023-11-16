@@ -6,7 +6,7 @@ public class Texture2DWrapper : ITexture
 {
     public Texture2D? Texture{get; set;}
 
-    public Texture2DWrapper(Texture2D texture)
+    public Texture2DWrapper(Texture2D? texture)
     {
         Texture = texture;
     }
