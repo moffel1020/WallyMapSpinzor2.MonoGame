@@ -1,4 +1,5 @@
 using System.Drawing;
+using System.Net.Sockets;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -22,7 +23,17 @@ public class BaseGame : Game
     {
         Canvas ??= new(GraphicsDevice, BrawlPath);
         GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.Black);
-        ToDraw.DrawOn(Canvas, new GlobalRenderData(), new RenderSettings(), Transform.IDENTITY, 0f/16);
+
+        Transform t = Transform.IDENTITY;
+        if(ToDraw is LevelDesc ld)
+        {
+            double scale = Math.Min(GraphicsDevice.Viewport.Width/ld.CameraBounds.W, GraphicsDevice.Viewport.Height/ld.CameraBounds.H);
+            t =
+                Transform.CreateScale(scale, scale) *
+                Transform.CreateTranslate(-ld.CameraBounds.X, -ld.CameraBounds.Y);
+        }
+
+        ToDraw.DrawOn(Canvas, new GlobalRenderData(), new RenderSettings(), t, 0f);
         Canvas.FinalizeDraw();
         base.Draw(gameTime);
     }

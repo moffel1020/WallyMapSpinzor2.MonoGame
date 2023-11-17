@@ -5,7 +5,6 @@ namespace WallyMapSpinzor2.MonoGame;
 
 public class MonoGameCanvas : ICanvas<Texture2DWrapper>
 {
-    public static readonly Matrix CameraTransform = Matrix.CreateScale(0.1f) * Matrix.CreateTranslation(100, 100, 0);
     public string BrawlPath{get; set;}
     public SpriteBatch Batch{get; set;}
     public BucketPriorityQueue<Action<SpriteBatch>> DrawingQueue{get; set;} = new(Enum.GetValues<DrawPriorityEnum>().Length);
@@ -43,9 +42,10 @@ public class MonoGameCanvas : ICanvas<Texture2DWrapper>
     public void DrawTexture(double X, double Y, Texture2DWrapper texture, Transform t, DrawPriorityEnum p)
     {
         if(texture.Texture is null) return;
+        Matrix m = TransformToMatrix(t);
         DrawingQueue.Push((SpriteBatch sb) =>
         {
-            sb.Begin(blendState: BlendState.NonPremultiplied, transformMatrix: TransformToMatrix(t) * CameraTransform);
+            sb.Begin(blendState: BlendState.NonPremultiplied, rasterizerState: RasterizerState.CullNone, transformMatrix: m);
             sb.Draw(texture.Texture, new Vector2((float)X, (float)Y), Microsoft.Xna.Framework.Color.White);
             sb.End();
         }, (int)p);
@@ -61,9 +61,10 @@ public class MonoGameCanvas : ICanvas<Texture2DWrapper>
     public void DrawTextureRect(double X, double Y, double W, double H, Texture2DWrapper texture, Transform t, DrawPriorityEnum p)
     {
         if(texture.Texture is null) return;
+        Matrix m = TransformToMatrix(t);
         DrawingQueue.Push((SpriteBatch sb) =>
         {
-            sb.Begin(blendState: BlendState.NonPremultiplied, transformMatrix: TransformToMatrix(t) * CameraTransform);
+            sb.Begin(blendState: BlendState.NonPremultiplied, rasterizerState: RasterizerState.CullNone, transformMatrix: m);
             sb.Draw(texture.Texture, new Rectangle((int)X, (int)Y, (int)W, (int)H), Microsoft.Xna.Framework.Color.White);
             sb.End();
         }, (int)p);
