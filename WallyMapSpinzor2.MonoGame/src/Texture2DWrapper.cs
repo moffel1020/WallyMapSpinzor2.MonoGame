@@ -11,6 +11,11 @@ public class Texture2DWrapper : ITexture
         Texture = texture;
     }
 
+    ~Texture2DWrapper()
+    {
+        Texture?.Dispose();
+    }
+
     public int W => Texture?.Width ?? 0;
 
     public int H => Texture?.Height ?? 0;

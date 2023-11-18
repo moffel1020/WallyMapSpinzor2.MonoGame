@@ -11,6 +11,7 @@ public class MonoGameCanvas : ICanvas<Texture2DWrapper>
     public string BrawlPath{get; set;}
     public SpriteBatch Batch{get; set;}
     public BucketPriorityQueue<Action> DrawingQueue{get; set;} = new(Enum.GetValues<DrawPriorityEnum>().Length);
+    public Dictionary<string, Texture2DWrapper> TextureCache{get;} = new Dictionary<string, Texture2DWrapper>();
     public MonoGameCanvas(GraphicsDevice graphicsDevice, string brawlPath)
     {
         BrawlPath = brawlPath;
@@ -152,7 +153,18 @@ public class MonoGameCanvas : ICanvas<Texture2DWrapper>
     {
         if(Batch is null) return new(null);
         string finalPath = Path.Join(BrawlPath, "mapArt", path).ToString();
-        return new(Texture2D.FromFile(Batch.GraphicsDevice, finalPath));
+
+        TextureCache.TryGetValue(finalPath, out Texture2DWrapper? texture);
+        if (texture is not null) return texture;
+
+        texture = new(Texture2D.FromFile(Batch.GraphicsDevice, finalPath));
+        TextureCache.Add(finalPath, texture);
+        return texture;
+    }
+
+    public void ClearTextureCache()
+    {
+        TextureCache.Clear();
     }
 
     public Texture2DWrapper LoadTextureFromSWF(string filePath, string name)
