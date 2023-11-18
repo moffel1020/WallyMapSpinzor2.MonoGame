@@ -1,5 +1,3 @@
-using System.Drawing;
-using System.Net.Sockets;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -17,6 +15,7 @@ public class BaseGame : Game
         _graphics = new(this);
         ToDraw = toDraw;
         BrawlPath = brawlPath;
+        IsMouseVisible = true;
     }
 
     protected override void Draw(GameTime gameTime)
