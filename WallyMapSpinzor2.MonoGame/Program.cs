@@ -15,6 +15,7 @@ fsr.Close();
 LevelDesc levelDesc = element.DeserializeTo<LevelDesc>();
 
 using WallyMapSpinzor2.MonoGame.BaseGame game = new(brawlPath, levelDesc);
+game.IsMouseVisible = true;
 game.Window.AllowUserResizing = true;
 game.Window.Title = "WallyMapSpinzor2.MonoGame";
 game.Run();

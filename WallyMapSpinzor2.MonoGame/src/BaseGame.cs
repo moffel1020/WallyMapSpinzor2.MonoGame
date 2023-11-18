@@ -33,7 +33,7 @@ public class BaseGame : Game
                 Transform.CreateTranslate(-ld.CameraBounds.X, -ld.CameraBounds.Y);
         }
 
-        ToDraw.DrawOn(Canvas, new GlobalRenderData(), new RenderSettings(), t, 0f);
+        ToDraw.DrawOn(Canvas, new GlobalRenderData(), new RenderSettings(), t, 60.0 * gameTime.TotalGameTime.Ticks / TimeSpan.TicksPerSecond);
         Canvas.FinalizeDraw();
         base.Draw(gameTime);
     }
