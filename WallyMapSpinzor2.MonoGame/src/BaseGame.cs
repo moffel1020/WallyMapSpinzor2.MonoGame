@@ -18,6 +18,12 @@ public class BaseGame : Game
         IsMouseVisible = true;
         Window.AllowUserResizing = true;
         Window.Title = "WallyMapSpinzor2.MonoGame";
+        Window.ClientSizeChanged += OnWindowResize;
+    }
+
+    private void OnWindowResize(object? sender, EventArgs e)
+    {
+        Canvas?.ResizeLineShader();
     }
 
     protected override void Draw(GameTime gameTime)

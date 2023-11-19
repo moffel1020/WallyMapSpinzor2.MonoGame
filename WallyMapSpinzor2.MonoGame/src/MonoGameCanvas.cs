@@ -167,6 +167,16 @@ public class MonoGameCanvas : ICanvas<Texture2DWrapper>
         TextureCache.Clear();
     }
 
+    public void ResizeLineShader()
+    {
+        if(_lineShader is null) return;
+
+        _lineShader.Projection = Matrix.CreateOrthographicOffCenter
+                (0, Batch.GraphicsDevice.Viewport.Width,
+                Batch.GraphicsDevice.Viewport.Height, 0,
+                0, 1);
+    }
+
     public Texture2DWrapper LoadTextureFromSWF(string filePath, string name)
     {
         return new(null);
