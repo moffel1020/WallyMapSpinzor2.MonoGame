@@ -86,7 +86,7 @@ public class MonoGameCanvas : ICanvas<Texture2DWrapper>
             {
                 _pixelTexture ??= Create1PixelTexture(Batch.GraphicsDevice);
                 //draw
-                Batch.Begin(transformMatrix: m);
+                Batch.Begin(blendState: BlendState.NonPremultiplied, transformMatrix: m);
                 Batch.Draw(_pixelTexture, new Vector2((float)X,(float)Y), null, ToXnaColor(c), 0, Vector2.Zero, new Vector2((float)W,(float)H), SpriteEffects.None, 0);
                 Batch.End();
             }, (int)p);
