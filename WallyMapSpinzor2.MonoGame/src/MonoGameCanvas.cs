@@ -49,7 +49,7 @@ public class MonoGameCanvas : ICanvas<Texture2DWrapper>
 
     }
 
-    public void DrawDualColorLine(double X1, double Y1, double X2, double Y2, Color c1, Color c2, Transform t, DrawPriorityEnum p)
+    public void DrawLineMultiColor(double X1, double Y1, double X2, double Y2, Color[] cs, Transform t, DrawPriorityEnum p)
     {
         
     }
