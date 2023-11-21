@@ -44,9 +44,42 @@ public class MonoGameCanvas : ICanvas<Texture2DWrapper>
 
     public static Microsoft.Xna.Framework.Color ToXnaColor(Color c) => new(c.R/255f,c.G/255f,c.B/255f,c.A/255f);
 
+    public static int DefaultSubdiv(double R) => Math.Max(8, (int)Math.Ceiling(R / 1.5));
+
     public void DrawCircle(double X, double Y, double R, Color c, Transform t, DrawPriorityEnum p)
     {
+        int subdiv = DefaultSubdiv(R);
 
+        VertexPositionColor[] vertices =
+            Enumerable.Range(0, subdiv)
+            .Select(i =>
+            {
+                (double sliceY, double sliceX) = Math.SinCos(Math.Tau * i / subdiv);
+                return new VertexPositionColor(new Vector3((float)(X + R*sliceX), (float)(Y + R*sliceY), 0), ToXnaColor(c));
+            })
+            .Prepend(new(new((float)X,(float)Y,0), ToXnaColor(c)))
+            .ToArray();
+
+        short[] indices = new short[subdiv*3];
+        for(int i = 0; i < subdiv; ++i)
+        {
+            indices[3 * i] = 0;
+            indices[3 * i + 1] = (short)(i + 1);
+            indices[3 * i + 2] = (short)(i + 2);
+        }
+        indices[^1] = 1;
+
+        DrawingQueue.Push(() =>
+        {
+            _lineShader ??= CreateLineShader(Batch.GraphicsDevice);
+            _lineShader.World = TransformToMatrix(t);
+            foreach(EffectPass pass in _lineShader.CurrentTechnique.Passes)
+            {
+                pass.Apply();
+                Batch.GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, vertices.ToArray(), 0, subdiv+1, indices, 0, subdiv);
+            }
+            _lineShader.World = Matrix.Identity;
+        }, (int)p);
     }
 
     public void DrawLineMultiColor(double X1, double Y1, double X2, double Y2, Color[] cs, Transform t, DrawPriorityEnum p)
@@ -56,9 +89,6 @@ public class MonoGameCanvas : ICanvas<Texture2DWrapper>
 
     public void DrawLine(double X1, double Y1, double X2, double Y2, Color c, Transform t, DrawPriorityEnum p)
     {
-        //transform line points
-        (X1, Y1) = t * new Position(X1, Y1);
-        (X2, Y2) = t * new Position(X2, Y2);
         //create vertex array
         VertexPositionColor[] vertices = new VertexPositionColor[]
         {
@@ -68,11 +98,14 @@ public class MonoGameCanvas : ICanvas<Texture2DWrapper>
 
         DrawingQueue.Push(() =>
         {
-            //create line shader
             _lineShader ??= CreateLineShader(Batch.GraphicsDevice);
-            //draw line
-            _lineShader.CurrentTechnique.Passes[0].Apply();
-            Batch.GraphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, vertices, 0, 1);
+            _lineShader.World = TransformToMatrix(t);
+            foreach(EffectPass pass in _lineShader.CurrentTechnique.Passes)
+            {
+                pass.Apply();
+                Batch.GraphicsDevice.DrawUserPrimitives(PrimitiveType.LineStrip, vertices, 0, 1);
+            }
+            _lineShader.World = Matrix.Identity;
         }, (int)p);
     }
 
@@ -94,28 +127,25 @@ public class MonoGameCanvas : ICanvas<Texture2DWrapper>
         //outline. use line draws.
         else
         {
-            //transform lines points
-            (double X1, double Y1) = t * new Position(X, Y);
-            (double X2, double Y2) = t * new Position(X+W, Y);
-            (double X3, double Y3) = t * new Position(X+W, Y+H);
-            (double X4, double Y4) = t * new Position(X, Y+H);
-            (double X5, double Y5) = t * new Position(X, Y);
             //create vertex array
             VertexPositionColor[] vertices = new VertexPositionColor[]
             {
-                new(new Vector3((float)X1,(float)Y1,0), ToXnaColor(c)),
-                new(new Vector3((float)X2,(float)Y2,0), ToXnaColor(c)),
-                new(new Vector3((float)X3,(float)Y3,0), ToXnaColor(c)),
-                new(new Vector3((float)X4,(float)Y4,0), ToXnaColor(c)),
-                new(new Vector3((float)X5,(float)Y5,0), ToXnaColor(c))
+                new(new Vector3((float)X,(float)Y,0), ToXnaColor(c)),
+                new(new Vector3((float)(X+W),(float)Y,0), ToXnaColor(c)),
+                new(new Vector3((float)(X+W),(float)(Y+H),0), ToXnaColor(c)),
+                new(new Vector3((float)X,(float)(Y+H),0), ToXnaColor(c)),
+                new(new Vector3((float)X,(float)Y,0), ToXnaColor(c))
             };
             DrawingQueue.Push(() =>
             {
-                //create line shader
                 _lineShader ??= CreateLineShader(Batch.GraphicsDevice);
-                //draw line
-                _lineShader.CurrentTechnique.Passes[0].Apply();
-                Batch.GraphicsDevice.DrawUserPrimitives(PrimitiveType.LineStrip, vertices, 0, vertices.Length-1);
+                _lineShader.World = m;
+                foreach(EffectPass pass in _lineShader.CurrentTechnique.Passes)
+                {
+                    pass.Apply();
+                    Batch.GraphicsDevice.DrawUserPrimitives(PrimitiveType.LineStrip, vertices, 0, vertices.Length-1);
+                }
+                _lineShader.World = Matrix.Identity;
             }, (int)p);
         }
     }
