@@ -17,13 +17,6 @@ public class MonoGameCanvas : ICanvas<Texture2DWrapper>
         BrawlPath = brawlPath;
         Batch = new(graphicsDevice);
     }
-    
-    public static Matrix TransformToMatrix(Transform t) => new(
-        (float)t.ScaleX, (float)t.SkewY, 0, 0,
-        (float)t.SkewX, (float)t.ScaleY, 0, 0,
-        0, 0, 1, 0,
-        (float)t.TranslateX, (float)t.TranslateY, 0, 1
-    );
 
     private static Texture2D Create1PixelTexture(GraphicsDevice gd)
     {
@@ -42,8 +35,6 @@ public class MonoGameCanvas : ICanvas<Texture2DWrapper>
                 0, 1)
         };
 
-    public static Microsoft.Xna.Framework.Color ToXnaColor(Color c) => new(c.R/255f,c.G/255f,c.B/255f,c.A/255f);
-
     public static int DefaultSubdiv(double R) => Math.Max(8, (int)Math.Ceiling(R / 1.5));
 
     public void DrawCircle(double X, double Y, double R, Color c, Transform t, DrawPriorityEnum p)
@@ -55,9 +46,9 @@ public class MonoGameCanvas : ICanvas<Texture2DWrapper>
             .Select(i =>
             {
                 (double sliceY, double sliceX) = Math.SinCos(Math.Tau * i / subdiv);
-                return new VertexPositionColor(new Vector3((float)(X + R*sliceX), (float)(Y + R*sliceY), 0), ToXnaColor(c));
+                return new VertexPositionColor(new Vector3((float)(X + R*sliceX), (float)(Y + R*sliceY), 0), Utils.ToXnaColor(c));
             })
-            .Prepend(new(new((float)X,(float)Y,0), ToXnaColor(c)))
+            .Prepend(new(new((float)X,(float)Y,0), Utils.ToXnaColor(c)))
             .ToArray();
 
         short[] indices = new short[subdiv*3];
@@ -72,7 +63,7 @@ public class MonoGameCanvas : ICanvas<Texture2DWrapper>
         DrawingQueue.Push(() =>
         {
             _lineShader ??= CreateLineShader(Batch.GraphicsDevice);
-            _lineShader.World = TransformToMatrix(t);
+            _lineShader.World = Utils.TransformToMatrix(t);
             foreach(EffectPass pass in _lineShader.CurrentTechnique.Passes)
             {
                 pass.Apply();
@@ -82,24 +73,19 @@ public class MonoGameCanvas : ICanvas<Texture2DWrapper>
         }, (int)p);
     }
 
-    public void DrawLineMultiColor(double X1, double Y1, double X2, double Y2, Color[] cs, Transform t, DrawPriorityEnum p)
-    {
-        
-    }
-
     public void DrawLine(double X1, double Y1, double X2, double Y2, Color c, Transform t, DrawPriorityEnum p)
     {
         //create vertex array
         VertexPositionColor[] vertices = new VertexPositionColor[]
         {
-            new(new Vector3((float)X1,(float)Y1,0), ToXnaColor(c)),
-            new(new Vector3((float)X2,(float)Y2,0), ToXnaColor(c))
+            new(new Vector3((float)X1,(float)Y1,0), Utils.ToXnaColor(c)),
+            new(new Vector3((float)X2,(float)Y2,0), Utils.ToXnaColor(c))
         };
 
         DrawingQueue.Push(() =>
         {
             _lineShader ??= CreateLineShader(Batch.GraphicsDevice);
-            _lineShader.World = TransformToMatrix(t);
+            _lineShader.World = Utils.TransformToMatrix(t);
             foreach(EffectPass pass in _lineShader.CurrentTechnique.Passes)
             {
                 pass.Apply();
@@ -109,9 +95,29 @@ public class MonoGameCanvas : ICanvas<Texture2DWrapper>
         }, (int)p);
     }
 
+    public const double MULTI_COLOR_LINE_OFFSET = 1.0;
+    public void DrawLineMultiColor(double X1, double Y1, double X2, double Y2, Color[] cs, Transform t, DrawPriorityEnum p)
+    {
+        (X1, Y1) = t * new Position(X1, Y1);
+        (X2, Y2) = t * new Position(X2, Y2);
+        if(X1 > X2)
+        {
+            (X1, X2) = (X2, X1);
+            (Y1, Y2) = (Y2, Y1);
+        }
+        double center = (cs.Length-1) / 2.0;
+        (double OffX, double OffY) = (Y1-Y2, X2-X1);
+        (OffX, OffY) = BrawlhallaMath.Normalize(OffX, OffY);
+        for(int i = 0; i < cs.Length; ++i)
+        {
+            double mult = MULTI_COLOR_LINE_OFFSET*(i - center);
+            DrawLine(X1 + OffX*mult, Y1 + OffY*mult, X2 + OffX*mult, Y2 + OffY*mult, cs[i], Transform.IDENTITY, p);
+        }
+    }
+
     public void DrawRect(double X, double Y, double W, double H, bool filled, Color c, Transform t, DrawPriorityEnum p)
     {
-        Matrix m = TransformToMatrix(t);
+        Matrix m = Utils.TransformToMatrix(t);
         //filled. use 1 pixel texture.
         if(filled)
         {
@@ -120,7 +126,7 @@ public class MonoGameCanvas : ICanvas<Texture2DWrapper>
                 _pixelTexture ??= Create1PixelTexture(Batch.GraphicsDevice);
                 //draw
                 Batch.Begin(blendState: BlendState.NonPremultiplied, transformMatrix: m);
-                Batch.Draw(_pixelTexture, new Vector2((float)X,(float)Y), null, ToXnaColor(c), 0, Vector2.Zero, new Vector2((float)W,(float)H), SpriteEffects.None, 0);
+                Batch.Draw(_pixelTexture, new Vector2((float)X,(float)Y), null, Utils.ToXnaColor(c), 0, Vector2.Zero, new Vector2((float)W,(float)H), SpriteEffects.None, 0);
                 Batch.End();
             }, (int)p);
         }
@@ -130,11 +136,11 @@ public class MonoGameCanvas : ICanvas<Texture2DWrapper>
             //create vertex array
             VertexPositionColor[] vertices = new VertexPositionColor[]
             {
-                new(new Vector3((float)X,(float)Y,0), ToXnaColor(c)),
-                new(new Vector3((float)(X+W),(float)Y,0), ToXnaColor(c)),
-                new(new Vector3((float)(X+W),(float)(Y+H),0), ToXnaColor(c)),
-                new(new Vector3((float)X,(float)(Y+H),0), ToXnaColor(c)),
-                new(new Vector3((float)X,(float)Y,0), ToXnaColor(c))
+                new(new Vector3((float)X,(float)Y,0), Utils.ToXnaColor(c)),
+                new(new Vector3((float)(X+W),(float)Y,0), Utils.ToXnaColor(c)),
+                new(new Vector3((float)(X+W),(float)(Y+H),0), Utils.ToXnaColor(c)),
+                new(new Vector3((float)X,(float)(Y+H),0), Utils.ToXnaColor(c)),
+                new(new Vector3((float)X,(float)Y,0), Utils.ToXnaColor(c))
             };
             DrawingQueue.Push(() =>
             {
@@ -158,7 +164,7 @@ public class MonoGameCanvas : ICanvas<Texture2DWrapper>
     public void DrawTexture(double X, double Y, Texture2DWrapper texture, Transform t, DrawPriorityEnum p)
     {
         if(texture.Texture is null) return;
-        Matrix m = TransformToMatrix(t);
+        Matrix m = Utils.TransformToMatrix(t);
         DrawingQueue.Push(() =>
         {
             Batch.Begin(blendState: BlendState.NonPremultiplied, rasterizerState: RasterizerState.CullNone, transformMatrix: m);
@@ -170,7 +176,7 @@ public class MonoGameCanvas : ICanvas<Texture2DWrapper>
     public void DrawTextureRect(double X, double Y, double W, double H, Texture2DWrapper texture, Transform t, DrawPriorityEnum p)
     {
         if(texture.Texture is null) return;
-        Matrix m = TransformToMatrix(t);
+        Matrix m = Utils.TransformToMatrix(t);
         DrawingQueue.Push(() =>
         {
             Batch.Begin(blendState: BlendState.NonPremultiplied, rasterizerState: RasterizerState.CullNone, transformMatrix: m);
