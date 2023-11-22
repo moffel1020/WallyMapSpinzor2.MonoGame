@@ -48,7 +48,7 @@ public class MonoGameCanvas : ICanvas<Texture2DWrapper>
                 (double sliceY, double sliceX) = Math.SinCos(Math.Tau * i / subdiv);
                 return new VertexPositionColor(new Vector3((float)(X + R*sliceX), (float)(Y + R*sliceY), 0), Utils.ToXnaColor(c));
             })
-            .Prepend(new(new((float)X,(float)Y,0), Utils.ToXnaColor(c)))
+            .Prepend(new(new Vector3((float)X,(float)Y,0), Utils.ToXnaColor(c)))
             .ToArray();
 
         short[] indices = new short[subdiv*3];

@@ -11,8 +11,9 @@ using StreamReader fsr = new(fromFile);
 XDocument document = XDocument.Parse(MapUtils.FixBmg(fsr.ReadToEnd()));
 if (document.FirstNode is not XElement element) return;
 fsr.Close();
-//write to file.
+//deserialize
 LevelDesc levelDesc = element.DeserializeTo<LevelDesc>();
-
+//create window
 using WallyMapSpinzor2.MonoGame.BaseGame game = new(brawlPath, levelDesc);
+//run
 game.Run();

@@ -6,6 +6,11 @@ namespace WallyMapSpinzor2.MonoGame;
 
 public class BaseGame : Game
 {
+    public const double MIN_ZOOM = 0.1;
+    public const double MAX_ZOOM = 7;
+    public const double ZOOM_PER_MSEC = 0.00005;
+    public const double SPEED_MULT = 1;
+
     private GraphicsDeviceManager _graphics;
     public string BrawlPath{get; set;}
     public MonoGameCanvas? Canvas{get; set;} = null;
@@ -35,17 +40,14 @@ public class BaseGame : Game
 
         if(Cam is not null) 
         {
-            Cam.Zoom += 0.00005 * Input.GetScrollWheelDelta() * gameTime.ElapsedGameTime.Milliseconds;
-            Cam.Zoom = Math.Clamp(Cam.Zoom, 0.1, 7);
+            Cam.Zoom += ZOOM_PER_MSEC * Input.GetScrollWheelDelta() * gameTime.ElapsedGameTime.TotalMilliseconds;
+            Cam.Zoom = Math.Clamp(Cam.Zoom, MIN_ZOOM, MAX_ZOOM);
 
-            if (Input.IsMouseDown(MouseButton.Right))
+            if(Input.IsMouseDown(MouseButtonEnum.Right))
             {
-                Input.GetMouseDelta().Deconstruct(out int x, out int y);
-                Position delta = Position.ZERO with {X = x, Y = y};
-
-                delta = Transform.CreateScale(1/(Cam.Zoom * _windowScale), 1/(Cam.Zoom * _windowScale)) * delta;
-                Cam.X += delta.X;
-                Cam.Y += delta.Y;
+                (int x, int y) = Input.GetMouseDelta();
+                Cam.X += x / (Cam.Zoom * _windowScale);
+                Cam.Y += y / (Cam.Zoom * _windowScale);
             }
         }
 
@@ -60,18 +62,23 @@ public class BaseGame : Game
         Transform t = Transform.IDENTITY;
         if(ToDraw is LevelDesc ld)
         {
-            _windowScale = Math.Min(GraphicsDevice.Viewport.Width/ld.CameraBounds.W, GraphicsDevice.Viewport.Height/ld.CameraBounds.H);
+            double viewportW = GraphicsDevice.Viewport.Width;
+            double viewportH = GraphicsDevice.Viewport.Height;
+            double cameraBoundX = ld.CameraBounds.X;
+            double cameraBoundY = ld.CameraBounds.Y;
+            double cameraBoundW = ld.CameraBounds.W;
+            double cameraBoundH = ld.CameraBounds.H;
+            _windowScale = Math.Min(viewportW/cameraBoundW, viewportH/cameraBoundH);
 
             // initialize inside camerabounds
-            Cam ??= new(-ld.CameraBounds.X - GraphicsDevice.Viewport.Width/(2 * _windowScale),
-                -ld.CameraBounds.Y - GraphicsDevice.Viewport.Height/(2 * _windowScale));
+            Cam ??= new(-cameraBoundX - viewportW/(2 * _windowScale), -cameraBoundY - viewportH/(2 * _windowScale));
 
-            t = Transform.CreateTranslate(GraphicsDevice.Viewport.Width/2, GraphicsDevice.Viewport.Height/2) * // set center to x=0, y=0 for scaling
+            t = Transform.CreateTranslate(viewportW/2, viewportH/2) * // set center to x=0, y=0 for scaling
                 Transform.CreateScale(_windowScale, _windowScale) *
                 Cam.ToTransform();
         }
 
-        ToDraw.DrawOn(Canvas, new GlobalRenderData(), new RenderSettings(), t, 60.0 * gameTime.TotalGameTime.Ticks / TimeSpan.TicksPerSecond);
+        ToDraw.DrawOn(Canvas, new GlobalRenderData(), new RenderSettings(), t, SPEED_MULT * 60.0 * gameTime.TotalGameTime.Ticks / TimeSpan.TicksPerSecond);
         Canvas.FinalizeDraw();
         base.Draw(gameTime);
     }
