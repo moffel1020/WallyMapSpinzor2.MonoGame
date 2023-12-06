@@ -54,6 +54,11 @@ public class BaseGame : Game
         base.Update(gameTime);
     }
 
+    private readonly RenderConfig _config = new()
+    {
+
+    };
+
     protected override void Draw(GameTime gameTime)
     {
         Canvas ??= new(GraphicsDevice, BrawlPath);
@@ -78,7 +83,7 @@ public class BaseGame : Game
                 Cam.ToTransform();
         }
 
-        ToDraw.DrawOn(Canvas, new GlobalRenderData(), new RenderSettings(), t, SPEED_MULT * 60.0 * gameTime.TotalGameTime.Ticks / TimeSpan.TicksPerSecond);
+        ToDraw.DrawOn(Canvas, _config, t, gameTime.TotalGameTime, new RenderData());
         Canvas.FinalizeDraw();
         base.Draw(gameTime);
     }
