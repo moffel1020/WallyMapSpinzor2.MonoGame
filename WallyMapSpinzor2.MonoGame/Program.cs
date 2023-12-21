@@ -1,5 +1,4 @@
 ﻿using System.Xml.Linq;
-using Microsoft.Xna.Framework;
 using WallyMapSpinzor2;
 
 string brawlPath = args[0];

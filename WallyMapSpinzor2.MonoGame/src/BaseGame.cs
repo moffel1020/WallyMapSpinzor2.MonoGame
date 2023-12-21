@@ -64,7 +64,7 @@ public class BaseGame : Game
         Canvas ??= new(GraphicsDevice, BrawlPath);
         GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.Black);
 
-        Transform t = Transform.IDENTITY;
+        Transform trans = Transform.IDENTITY;
         if(ToDraw is LevelDesc ld)
         {
             double viewportW = GraphicsDevice.Viewport.Width;
@@ -73,17 +73,18 @@ public class BaseGame : Game
             double cameraBoundY = ld.CameraBounds.Y;
             double cameraBoundW = ld.CameraBounds.W;
             double cameraBoundH = ld.CameraBounds.H;
-            _windowScale = Math.Min(viewportW/cameraBoundW, viewportH/cameraBoundH);
+            _windowScale = Math.Min(viewportW / cameraBoundW, viewportH / cameraBoundH);
 
             // initialize inside camerabounds
-            Cam ??= new(-cameraBoundX - viewportW/(2 * _windowScale), -cameraBoundY - viewportH/(2 * _windowScale));
+            Cam ??= new(-cameraBoundX - viewportW / (2 * _windowScale), -cameraBoundY - viewportH / (2 * _windowScale));
 
-            t = Transform.CreateTranslate(viewportW/2, viewportH/2) * // set center to x=0, y=0 for scaling
+            trans =
+                Transform.CreateTranslate(viewportW / 2, viewportH / 2) * // set center to x=0, y=0 for scaling
                 Transform.CreateScale(_windowScale, _windowScale) *
                 Cam.ToTransform();
         }
 
-        ToDraw.DrawOn(Canvas, _config, t, gameTime.TotalGameTime, new RenderData());
+        ToDraw.DrawOn(Canvas, _config, trans, gameTime.TotalGameTime, new RenderData());
         Canvas.FinalizeDraw();
         base.Draw(gameTime);
     }

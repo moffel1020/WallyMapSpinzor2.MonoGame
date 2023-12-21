@@ -55,6 +55,6 @@ public static class Input
         _ => false,
     };
 
-    public static Microsoft.Xna.Framework.Point GetMouseDelta() => (_currentMouseState?.Position - _previousMouseState?.Position) ?? new(0,0);
+    public static Microsoft.Xna.Framework.Point GetMouseDelta() => (_currentMouseState?.Position - _previousMouseState?.Position) ?? new(0, 0);
     public static int GetScrollWheelDelta() => (_currentMouseState?.ScrollWheelValue - _previousMouseState?.ScrollWheelValue) ?? 0;
 }
