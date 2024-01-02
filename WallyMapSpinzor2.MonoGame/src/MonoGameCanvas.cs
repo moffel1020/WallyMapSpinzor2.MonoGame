@@ -12,6 +12,7 @@ public class MonoGameCanvas : ICanvas<Texture2DWrapper>
     public SpriteBatch Batch{get; set;}
     public BucketPriorityQueue<Action> DrawingQueue{get; set;} = new(Enum.GetValues<DrawPriorityEnum>().Length);
     public Dictionary<string, Texture2DWrapper> TextureCache{get;} = new();
+
     public MonoGameCanvas(GraphicsDevice graphicsDevice, string brawlPath)
     {
         BrawlPath = brawlPath;
