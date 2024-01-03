@@ -1,4 +1,5 @@
 ﻿using System.Xml.Linq;
+using System.IO;
 using WallyMapSpinzor2;
 
 static T DeserializeFromPath<T>(string fromPath) 
@@ -13,22 +14,13 @@ static T DeserializeFromPath<T>(string fromPath)
 }
 
 string brawlPath = args[0];
-string ldPath = args[1];
+string dumpPath = args[1];
+string fileName = args[2];
 
-IDrawable drawable;
-if(args.Length >= 4)
-{
-    string ltPath = args[2];
-    string lstPath = args[3];
-    LevelDesc ld = DeserializeFromPath<LevelDesc>(ldPath);
-    LevelTypes lt = DeserializeFromPath<LevelTypes>(ltPath);
-    LevelSetTypes lst = DeserializeFromPath<LevelSetTypes>(lstPath);
-    drawable = new Level(ld, lt, lst);
-}
-else
-{
-    drawable = DeserializeFromPath<LevelDesc>(ldPath);
-}
+LevelDesc ld = DeserializeFromPath<LevelDesc>(Path.Join(dumpPath, "Dynamic", fileName).ToString());
+LevelTypes lt = DeserializeFromPath<LevelTypes>(Path.Join(dumpPath, "Init", "LevelTypes.xml").ToString());
+LevelSetTypes lst = DeserializeFromPath<LevelSetTypes>(Path.Join(dumpPath, "Game", "LevelSetTypes.xml").ToString());
+IDrawable drawable = new Level(ld, lt, lst);
 
 //create window
 using WallyMapSpinzor2.MonoGame.BaseGame game = new(brawlPath, drawable);
