@@ -1,5 +1,4 @@
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace WallyMapSpinzor2.MonoGame;
@@ -64,28 +63,36 @@ public class BaseGame : Game
         Canvas ??= new(GraphicsDevice, BrawlPath);
         GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.Black);
 
-        Transform trans = Transform.IDENTITY;
-        if(ToDraw is LevelDesc ld)
-        {
-            double viewportW = GraphicsDevice.Viewport.Width;
-            double viewportH = GraphicsDevice.Viewport.Height;
-            double cameraBoundX = ld.CameraBounds.X;
-            double cameraBoundY = ld.CameraBounds.Y;
-            double cameraBoundW = ld.CameraBounds.W;
-            double cameraBoundH = ld.CameraBounds.H;
-            _windowScale = Math.Min(viewportW / cameraBoundW, viewportH / cameraBoundH);
+        Cam ??= CreateCamera();
 
-            // initialize inside camerabounds
-            Cam ??= new(-cameraBoundX - viewportW / (2 * _windowScale), -cameraBoundY - viewportH / (2 * _windowScale));
+        double viewportW = GraphicsDevice.Viewport.Width;
+        double viewportH = GraphicsDevice.Viewport.Height;
 
-            trans =
-                Transform.CreateTranslate(viewportW / 2, viewportH / 2) * // set center to x=0, y=0 for scaling
-                Transform.CreateScale(_windowScale, _windowScale) *
-                Cam.ToTransform();
-        }
+        Transform trans =
+            Transform.CreateTranslate(viewportW / 2, viewportH / 2) * // set center to x=0, y=0 for scaling
+            Transform.CreateScale(_windowScale, _windowScale) *
+            Cam?.ToTransform() ?? Transform.IDENTITY;
 
         ToDraw.DrawOn(Canvas, _config, trans, gameTime.TotalGameTime, new RenderData());
         Canvas.FinalizeDraw();
         base.Draw(gameTime);
+    }
+
+    private Camera? CreateCamera()
+    {
+        CameraBounds? bounds = ToDraw switch
+        {
+            LevelDesc ld => ld.CameraBounds,
+            Level l => l.Desc.CameraBounds,
+            _ => null
+        };
+
+        if(bounds is null) return null;
+
+        double viewportW = GraphicsDevice.Viewport.Width;
+        double viewportH = GraphicsDevice.Viewport.Height;
+        _windowScale = Math.Min(viewportW / bounds.W, viewportH / bounds.H);
+
+        return new(-bounds.X - viewportW / (2 * _windowScale), -bounds.Y - viewportH / (2 * _windowScale));
     }
 }
