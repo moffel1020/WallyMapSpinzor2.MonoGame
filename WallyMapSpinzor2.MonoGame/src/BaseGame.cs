@@ -55,7 +55,7 @@ public class BaseGame : Game
 
     private readonly RenderConfig _config = new()
     {
-
+        //ShowNavNode = true
     };
 
     protected override void Draw(GameTime gameTime)
@@ -73,7 +73,7 @@ public class BaseGame : Game
             Transform.CreateScale(_windowScale, _windowScale) *
             Cam?.ToTransform() ?? Transform.IDENTITY;
 
-        ToDraw.DrawOn(Canvas, _config, trans, gameTime.TotalGameTime, new RenderData());
+        ToDraw.DrawOn(Canvas, _config, trans, Transform.IDENTITY, gameTime.TotalGameTime, new RenderData());
         Canvas.FinalizeDraw();
         base.Draw(gameTime);
     }
