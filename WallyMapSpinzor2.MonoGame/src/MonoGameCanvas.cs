@@ -12,6 +12,8 @@ public class MonoGameCanvas : ICanvas<Texture2DWrapper>
     public SpriteBatch Batch{get; set;}
     public BucketPriorityQueue<Action> DrawingQueue{get; set;} = new(Enum.GetValues<DrawPriorityEnum>().Length);
     public Dictionary<string, Texture2DWrapper> TextureCache{get;} = new();
+    
+    public Transform CameraTransform{get; set;} = Transform.IDENTITY;
 
     public MonoGameCanvas(GraphicsDevice graphicsDevice, string brawlPath)
     {
@@ -40,6 +42,7 @@ public class MonoGameCanvas : ICanvas<Texture2DWrapper>
 
     public void DrawCircle(double x, double y, double radius, Color color, Transform trans, DrawPriorityEnum priority)
     {
+        trans = CameraTransform * trans;
         int subdiv = DefaultSubdiv(radius);
 
         VertexPositionColor[] vertices =
@@ -76,6 +79,7 @@ public class MonoGameCanvas : ICanvas<Texture2DWrapper>
 
     public void DrawLine(double x1, double y1, double x2, double y2, Color color, Transform trans, DrawPriorityEnum priority)
     {
+        trans = CameraTransform * trans;
         //create vertex array
         VertexPositionColor[] vertices = new VertexPositionColor[]
         {
@@ -101,6 +105,7 @@ public class MonoGameCanvas : ICanvas<Texture2DWrapper>
     public const double MULTI_COLOR_LINE_OFFSET = 1.0;
     public void DrawLineMultiColor(double x1, double y1, double x2, double y2, Color[] colors, Transform trans, DrawPriorityEnum priority)
     {
+        trans = CameraTransform * trans;
         (x1, y1) = trans * new Position(x1, y1);
         (x2, y2) = trans * new Position(x2, y2);
         if(x1 > x2)
@@ -120,6 +125,7 @@ public class MonoGameCanvas : ICanvas<Texture2DWrapper>
 
     public void DrawRect(double x, double y, double w, double h, bool filled, Color color, Transform trans, DrawPriorityEnum priority)
     {
+        trans = CameraTransform * trans;
         Matrix m = Utils.TransformToMatrix(trans);
         //filled. use 1 pixel texture.
         if(filled)
@@ -167,6 +173,7 @@ public class MonoGameCanvas : ICanvas<Texture2DWrapper>
     public void DrawTexture(double x, double y, Texture2DWrapper texture, Transform trans, DrawPriorityEnum priority)
     {
         if(texture.Texture is null) return;
+        trans = CameraTransform * trans;
         Matrix m = Utils.TransformToMatrix(trans);
         DrawingQueue.Push(() =>
         {
@@ -179,6 +186,7 @@ public class MonoGameCanvas : ICanvas<Texture2DWrapper>
     public void DrawTextureRect(double x, double y, double w, double h, Texture2DWrapper texture, Transform trans, DrawPriorityEnum priority)
     {
         if(texture.Texture is null) return;
+        trans = CameraTransform * trans;
         Matrix m = Utils.TransformToMatrix(trans);
         DrawingQueue.Push(() =>
         {

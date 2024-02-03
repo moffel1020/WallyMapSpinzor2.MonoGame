@@ -68,12 +68,13 @@ public class BaseGame : Game
         double viewportW = GraphicsDevice.Viewport.Width;
         double viewportH = GraphicsDevice.Viewport.Height;
 
-        Transform trans =
+        Transform camTrans =
             Transform.CreateTranslate(viewportW / 2, viewportH / 2) * // set center to x=0, y=0 for scaling
             Transform.CreateScale(_windowScale, _windowScale) *
             Cam?.ToTransform() ?? Transform.IDENTITY;
-
-        ToDraw.DrawOn(Canvas, _config, trans, Transform.IDENTITY, gameTime.TotalGameTime, new RenderData());
+        
+        Canvas.CameraTransform = camTrans;
+        ToDraw.DrawOn(Canvas, _config, Transform.IDENTITY, gameTime.TotalGameTime, new RenderData());
         Canvas.FinalizeDraw();
         base.Draw(gameTime);
     }
